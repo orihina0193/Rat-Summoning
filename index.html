@@ -3,130 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ゲームギャザー最適化計算ツール</title>
-    
+    <title>ギャザー最適化計算ツール</title>
     <style>
+        /* 💡 あなたが提供されたモダンなデザインCSSをベースに調整 */
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            max-width: 500px; /* スマホで見やすい最大幅 */
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f9;
-            color: #333;
+            background-color: #f0f0f0;
+            padding: 1em; /* スマホで見やすいパディング */
+            margin: 0;
         }
 
         h1 {
             text-align: center;
             color: #1a73e8;
-            font-size: 1.8rem;
-            margin-bottom: 30px;
+            font-size: 1.5em;
+            margin-bottom: 20px;
         }
-
-        .input-group {
-            margin-bottom: 15px;
+        
+        /* フォームのコンテナ（結果表示含む） */
+        .calculator-container {
+            background: #fff;
+            padding: 1.5em;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: auto;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
+            margin: 0.5em 0;
+            font-size: 1em;
             font-weight: bold;
-            font-size: 1rem;
         }
-
+        
+        /* 💡 入力フィールドを安定化 */
         input[type="number"] {
             width: 100%;
-            padding: 12px;
-            font-size: 1.2rem;
-            border: 2px solid #ccc;
-            border-radius: 8px;
+            padding: 0.8em;
+            margin-top: 0.2em;
             box-sizing: border-box;
+            font-size: 1.1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
 
         button {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: white;
+            margin-top: 1.5em;
+            padding: 0.8em 1.5em;
+            font-size: 1.1em;
             background-color: #4285f4;
+            color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 4px;
             cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.2s;
+            width: 100%;
         }
 
         button:hover {
             background-color: #357ae8;
         }
 
-        /* 修正点: 結果ボックスのスタイルを安定化 */
-        .result-box {
-            margin-top: 30px;
-            padding: 10px 15px;
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+        /* 結果表示エリアのスタイル */
+        #result {
+            margin-top: 2em;
+            padding: 1em 0;
             white-space: pre-wrap;
-            min-height: 100px;
-            font-size: 1.1rem;
-            line-height: 1.4; /* 行間を詰める */
+            box-sizing: border-box;
+            font-size: 1em;
+            color: #333;
+            line-height: 1.5;
             text-align: left; /* 左寄せ設定を強制 */
         }
         
+        /* --- 結果表示内の微調整 --- */
         .status-header {
-            font-size: 1.2rem;
+            font-size: 1.3em;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #eee;
         }
 
         .min-count-line {
             display: block;
             margin: 10px 0;
-            font-size: 1.1rem;
+            font-size: 1.1em;
             font-weight: normal;
         }
-        
-        /* 黄色い内訳ヘッダーの左寄せと縦長を解消 */
+
         .details-header {
-            display: block; /* ブロック要素にして左端からスタート */
-            margin-top: 10px; 
+            display: block;
+            margin-top: 15px; 
             font-weight: bold; 
-            color: orange;
-            margin-bottom: 5px; /* 下の余白を削減 */
+            color: #ffa500; /* オレンジ系 */
+            margin-bottom: 5px;
+        }
+        
+        /* リストのインデントを徹底的にリセット */
+        #result ul {
+            list-style: none;
+            padding-left: 0 !important;
+            margin: 5px 0 0 !important;
+        }
+        
+        #result li {
+            margin-bottom: 3px !important;
+            padding-left: 0 !important;
         }
 
-        /* 修正点: リストのインデントを徹底的にリセット */
-        .result-box ul {
-            list-style: none;
-            padding-left: 0 !important; /* リセットを強制 */
-            margin: 5px 0 0 !important; /* マージンを削減 */
-            border-top: 1px dashed #ccc;
-            padding-top: 10px;
-        }
-        
-        /* リスト項目も左寄せ */
-        .result-box li {
-            margin-bottom: 3px; /* リスト項目の縦長を削減 */
-            padding-left: 0 !important; /* 左寄せを強制 */
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5em;
+            }
+
+            h1 {
+                font-size: 1.4em;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>アイテム目標達成計算</h1>
-    <div class="input-group">
+    <div class="calculator-container">
+        <h1>アイテム目標達成計算</h1>
+        
         <label for="currentItems">現在のアイテム個数 (目標 2000)</label>
         <input type="number" id="currentItems" value="1000" placeholder="現在の個数">
-    </div>
-    <div class="input-group">
+    
         <label for="availableStamina">使えるスタミナ数 (コスト 21)</label>
         <input type="number" id="availableStamina" value="420" placeholder="スタミナ数">
+
+        <button onclick="calculateOptimal()">計算実行</button>
+
+        <div id="result">
+            </div>
     </div>
-
-    <button onclick="calculateOptimal()">計算実行</button>
-
-    <div id="result" class="result-box">
-        </div>
 
     <script>
         function calculateOptimal() {
@@ -152,18 +165,15 @@
             const DROP_A = 10;
             const DROP_B = 3;
 
-            // --- 1. 目標達成に必要な最小総回数を計算 (Bを最大限活用) ---
-            
+            // --- 最小総回数を求める総当たり探索 (鶴亀算応用) ---
             let minTotalCount = Infinity;
             let finalMinACount = -1;
             let finalMinBCount = -1;
             
-            // Aの回数は 0 から、すべてAで達成できる最大回数まで試す
             const A_max_needed = Math.ceil(neededItems / DROP_A); 
 
             for (let a = 0; a <= A_max_needed; a++) {
                 const remainingItems = neededItems - (a * DROP_A);
-                // Bで補う回数を計算 (切り上げ)
                 const b = remainingItems <= 0 ? 0 : Math.ceil(remainingItems / DROP_B);
                 
                 const totalCount = a + b;
@@ -178,13 +188,11 @@
             const minStaminaCost = minTotalCount * STAMINA_COST;
             const totalItemsAchieved = (finalMinACount * DROP_A) + (finalMinBCount * DROP_B);
             
-            // --- 2. スタミナ制約の判定 ---
+            // --- スタミナ制約の判定 ---
 
             if (minStaminaCost > availableStamina) {
                 // スタミナ不足
                 const shortage = minStaminaCost - availableStamina;
-                
-                // スタミナ不足の場合も、目標達成に必要な最小回数を表示
                 resultHtml = `
                 <div class="status-header" style="color: red;">❌ スタミナ不足で目標達成不可</div>
                 目標達成に必要な最小回数 ${minTotalCount}回分のスタミナは ${minStaminaCost} です。
@@ -215,6 +223,7 @@
             document.getElementById('result').innerHTML = resultHtml;
         }
 
+        // 初期ロード時と入力変更時に計算を実行
         document.addEventListener('DOMContentLoaded', calculateOptimal);
         document.getElementById('currentItems').addEventListener('input', calculateOptimal);
         document.getElementById('availableStamina').addEventListener('input', calculateOptimal);

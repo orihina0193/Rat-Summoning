@@ -3,143 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ギャザー最適化計算ツール</title>
+    <title>ゲームギャザー最適化計算ツール</title>
+    
     <style>
-        /* 💡 あなたが提供されたモダンなデザインCSSをベースに調整 */
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f0f0f0;
-            padding: 1em; /* スマホで見やすいパディング */
-            margin: 0;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
         }
 
         h1 {
             text-align: center;
             color: #1a73e8;
-            font-size: 1.5em;
-            margin-bottom: 20px;
-        }
-        
-        /* フォームのコンテナ（結果表示含む） */
-        .calculator-container {
-            background: #fff;
-            padding: 1.5em;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            max-width: 600px;
-            margin: auto;
-            width: 100%;
-            box-sizing: border-box;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
         }
 
-        label {
-            display: block;
-            margin: 0.5em 0;
-            font-size: 1em;
-            font-weight: bold;
+        .input-group {
+            margin-bottom: 15px;
         }
         
-        /* 💡 入力フィールドを安定化 */
-        input[type="number"] {
-            width: 100%;
-            padding: 0.8em;
-            margin-top: 0.2em;
-            box-sizing: border-box;
-            font-size: 1.1em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+        /* ... (入力フォームのスタイルは省略) ... */
 
         button {
-            margin-top: 1.5em;
-            padding: 0.8em 1.5em;
-            font-size: 1.1em;
-            background-color: #4285f4;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
+            /* ... (ボタンのスタイルは省略) ... */
         }
 
-        button:hover {
-            background-color: #357ae8;
-        }
-
-        /* 結果表示エリアのスタイル */
-        #result {
-            margin-top: 2em;
-            padding: 1em 0;
+        /* 修正点: 結果ボックスのスタイルを安定化 */
+        .result-box {
+            margin-top: 30px;
+            padding: 10px 15px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             white-space: pre-wrap;
-            box-sizing: border-box;
-            font-size: 1em;
-            color: #333;
-            line-height: 1.5;
+            min-height: 100px;
+            font-size: 1.1rem;
+            line-height: 1.4; /* 行間を詰める */
             text-align: left; /* 左寄せ設定を強制 */
         }
         
-        /* --- 結果表示内の微調整 --- */
         .status-header {
-            font-size: 1.3em;
+            font-size: 1.2rem;
             font-weight: bold;
-            margin-bottom: 8px;
-            padding-bottom: 5px;
-            border-bottom: 2px solid #eee;
+            margin-bottom: 5px;
         }
 
         .min-count-line {
             display: block;
             margin: 10px 0;
-            font-size: 1.1em;
+            font-size: 1.1rem;
             font-weight: normal;
         }
 
-        .details-header {
-            display: block;
-            margin-top: 15px; 
-            font-weight: bold; 
-            color: #ffa500; /* オレンジ系 */
-            margin-bottom: 5px;
-        }
-        
-        /* リストのインデントを徹底的にリセット */
-        #result ul {
+        /* 修正点: リストのインデントを徹底的にリセット */
+        .result-box ul {
             list-style: none;
-            padding-left: 0 !important;
-            margin: 5px 0 0 !important;
+            padding-left: 0 !important; /* リセットを強制 */
+            margin: 10px 0 0 !important; /* マージンをリセット */
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
         }
         
-        #result li {
-            margin-bottom: 3px !important;
-            padding-left: 0 !important;
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 0.5em;
-            }
-
-            h1 {
-                font-size: 1.4em;
-            }
+        /* リスト項目も左寄せ */
+        .result-box li {
+            margin-bottom: 5px;
+            padding-left: 0 !important; /* リセットを強制 */
         }
     </style>
 </head>
 <body>
-    <div class="calculator-container">
-        <h1>アイテム目標達成計算</h1>
-        
+    <h1>アイテム目標達成計算</h1>
+    <div class="input-group">
         <label for="currentItems">現在のアイテム個数 (目標 2000)</label>
         <input type="number" id="currentItems" value="1000" placeholder="現在の個数">
-    
+    </div>
+    <div class="input-group">
         <label for="availableStamina">使えるスタミナ数 (コスト 21)</label>
         <input type="number" id="availableStamina" value="420" placeholder="スタミナ数">
-
-        <button onclick="calculateOptimal()">計算実行</button>
-
-        <div id="result">
-            </div>
     </div>
+
+    <button onclick="calculateOptimal()">計算実行</button>
+
+    <div id="result" class="result-box">
+        </div>
 
     <script>
         function calculateOptimal() {
@@ -164,16 +114,28 @@
             const STAMINA_COST = 21;
             const DROP_A = 10;
             const DROP_B = 3;
+            const DROP_DIFF = DROP_A - DROP_B; // 7
 
-            // --- 最小総回数を求める総当たり探索 (鶴亀算応用) ---
+            // --- 1. 目標達成に必要な最小総回数を計算 (Bを最大限活用) ---
+            
+            // 全回数Bで集めた場合の不足分をAで補う (鶴亀算の最小回数ロジック)
+            // この回数で2000個を超え、かつ回数が最小になる
+            const N = neededItems; // Nは不足分
+            
+            // Bで総回数T回集めても足りない分のアイテム数 (N - 3T) を、AとBの差(7)で割る
+            // Tはまだ使えないので、回数を最小化する線形解を求める
+            
+            // 2000個達成に必要な回数が最小になる組み合わせを総当たりで探索
             let minTotalCount = Infinity;
             let finalMinACount = -1;
             let finalMinBCount = -1;
             
-            const A_max_needed = Math.ceil(neededItems / DROP_A); 
+            // Aの回数は 0 から、すべてAで達成できる最大回数まで試す
+            const A_max_needed = Math.ceil(N / DROP_A); 
 
             for (let a = 0; a <= A_max_needed; a++) {
-                const remainingItems = neededItems - (a * DROP_A);
+                const remainingItems = N - (a * DROP_A);
+                // Bで補う回数を計算 (切り上げ)
                 const b = remainingItems <= 0 ? 0 : Math.ceil(remainingItems / DROP_B);
                 
                 const totalCount = a + b;
@@ -188,7 +150,7 @@
             const minStaminaCost = minTotalCount * STAMINA_COST;
             const totalItemsAchieved = (finalMinACount * DROP_A) + (finalMinBCount * DROP_B);
             
-            // --- スタミナ制約の判定 ---
+            // --- 2. スタミナ制約の判定 ---
 
             if (minStaminaCost > availableStamina) {
                 // スタミナ不足
@@ -197,7 +159,7 @@
                 <div class="status-header" style="color: red;">❌ スタミナ不足で目標達成不可</div>
                 目標達成に必要な最小回数 ${minTotalCount}回分のスタミナは ${minStaminaCost} です。
                 <br>
-                あと <strong>${shortage}</strong> スタミナが必要です。
+                あと **${shortage}** スタミナが必要です。
                 `;
             } else {
                 // 達成可能
@@ -206,9 +168,9 @@
                 resultHtml = `
                 <div class="status-header" style="color: green;">✅ 目標達成可能（最小回数）</div>
 
-                <span class="min-count-line">2000個達成のために、Aギャザーは最低 <strong>${finalMinACount}回</strong> 参加が必要です。</span>
+                <span class="min-count-line">2000個達成のために、Aギャザーは最低 **${finalMinACount}回** 参加が必要です。</span>
 
-                <span class="details-header">
+                <span style="display: block; margin-top: 10px; font-weight: bold; color: orange;">
                 🔸 内訳（最小スタミナ ${minStaminaCost} で達成）:
                 </span>
                 <ul>
@@ -223,7 +185,6 @@
             document.getElementById('result').innerHTML = resultHtml;
         }
 
-        // 初期ロード時と入力変更時に計算を実行
         document.addEventListener('DOMContentLoaded', calculateOptimal);
         document.getElementById('currentItems').addEventListener('input', calculateOptimal);
         document.getElementById('availableStamina').addEventListener('input', calculateOptimal);

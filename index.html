@@ -1,243 +1,37 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ギャザー最適化計算ツール</title>
-    <style>
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f0f0f0;
-            padding: 1em;
-            margin: 0;
-        }
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.3em;
+    margin-bottom: 15px;
+  }
 
-        h1 {
-            text-align: center;
-            color: #1a73e8;
-            font-size: 1.5em;
-            margin-bottom: 20px;
-        }
+  input[type="number"] {
+    font-size: 1.2rem;
+    padding: 12px 10px;
+  }
 
-        .calculator-container {
-            background: #fff;
-            padding: 1.5em;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            max-width: 600px;
-            margin: auto;
-            width: 100%;
-            box-sizing: border-box;
-        }
+  button {
+    font-size: 1em;
+    padding: 0.7em 1.2em;
+  }
 
-        label {
-            display: block;
-            margin: 0.5em 0;
-            font-size: 1em;
-            font-weight: bold;
-        }
+  #result {
+    font-size: 1em;
+    line-height: 1.4;
+  }
 
-        /* 💡 入力フィールドのサイズを固定し、大きく、安定させる */
-        input[type="number"] {
-            width: 100%;
-            padding: 15px 12px;
-            font-size: 1.4rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            line-height: 1; 
-        }
+  .status-header {
+    font-size: 1.2em;
+  }
 
-        button {
-            margin-top: 1.5em;
-            padding: 0.8em 1.5em;
-            font-size: 1.1em;
-            background-color: #4285f4;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-        }
+  .min-count-line {
+    font-size: 1em;
+  }
 
-        button:hover {
-            background-color: #357ae8;
-        }
+  .details-header {
+    font-size: 1em;
+  }
 
-        /* 修正点: 結果ボックスのスタイルを安定化 */
-        #result {
-            margin-top: 2em;
-            padding: 10px 0;
-            white-space: pre-wrap;
-            box-sizing: border-box;
-            font-size: 1.1em;
-            color: #333;
-            line-height: 1.3; /* 行間を詰める */
-            text-align: left; /* 左寄せ設定を強制 */
-        }
-        
-        .status-header {
-            font-size: 1.3em;
-            font-weight: bold;
-            margin-bottom: 5px;
-            padding-bottom: 5px;
-            border-bottom: 2px solid #eee;
-        }
-
-        .min-count-line {
-            display: block;
-            margin: 5px 0;
-            font-size: 1.1em;
-            font-weight: normal;
-        }
-
-        .details-header {
-            display: block;
-            margin-top: 8px;
-            font-weight: bold; 
-            color: #ffa500;
-            margin-bottom: 3px;
-        }
-        
-        /* リストのインデントを徹底的にリセット */
-        #result ul {
-            list-style: none;
-            padding-left: 0 !important;
-            margin: 3px 0 0 !important;
-        }
-        
-        /* リスト項目も左寄せ */
-        #result li {
-            margin-bottom: 3px !important;
-            padding-left: 0 !important;
-        }
-    </style>
-</head>
-<body>
-    <div class="calculator-container">
-        <h1>アイテム目標達成計算</h1>
-        
-        <label for="currentItems">現在のアイテム個数 (目標 2000)</label>
-        <input type="number" id="currentItems" value="1000" placeholder="現在の個数">
-    
-        <label for="availableStamina">使えるスタミナ数 (コスト 21)</label>
-        <input type="number" id="availableStamina" value="420" placeholder="スタミナ数">
-
-        <button onclick="calculateOptimal()">計算実行</button>
-
-        <div id="result">
-            </div>
-    </div>
-
-    <script>
-        function calculateOptimal() {
-            const currentItems = parseInt(document.getElementById('currentItems').value);
-            const availableStamina = parseInt(document.getElementById('availableStamina').value);
-
-            if (isNaN(currentItems) || isNaN(availableStamina) || currentItems < 0 || availableStamina < 0) {
-                document.getElementById('result').innerHTML = '<span style="color: red; font-weight: bold;">⚠️ アイテム数とスタミナ数に正しい数値を入力してください。</span>';
-                return;
-            }
-
-            const goal = 2000;
-            const neededItems = goal - currentItems;
-            let resultHtml = '';
-
-            if (neededItems <= 0) {
-                resultHtml = `<div class="status-header" style="color: green;">🎉 目標アイテム数(${goal}個)は既に達成しています！</div>`;
-                document.getElementById('result').innerHTML = resultHtml;
-                return;
-            }
-
-            const STAMINA_COST = 21;
-            const DROP_A = 10;
-            const DROP_B = 3;
-            const DROP_DIFF = DROP_A - DROP_B; // 7
-
-            // 使えるスタミナ内で可能な最大総回数 (T)
-            const totalMaxCount = Math.floor(availableStamina / STAMINA_COST);
-
-            // --- 鶴亀算ロジック: Aの最小回数を計算 (2000個達成を保証) ---
-            
-            // 1. 全回数(T)を効率の悪いBでやったと仮定した場合のアイテム数
-            const maxItemsFromB = totalMaxCount * DROP_B;
-            
-            // 2. それでも目標に足りないアイテム数
-            const itemsShortage = neededItems - maxItemsFromB; 
-            
-            let finalMinACount;
-
-            if (itemsShortage <= 0) {
-                // すべてBでも目標達成可能（Aは0回でOK）
-                finalMinACount = 0;
-            } else {
-                // 不足分をAとBのドロップ差(7)で埋めるために必要なAの回数
-                finalMinACount = Math.ceil(itemsShortage / DROP_DIFF);
-            }
-            
-            // 3. 組み合わせの計算
-            const finalMaxBCount = totalMaxCount - finalMinACount;
-            const totalItemsAchieved = (finalMinACount * DROP_A) + (finalMaxBCount * DROP_B);
-            
-            
-            // --- 4. 最終判定 ---
-
-            // Aの最小回数が、そもそも使える回数(T)を超えていたらスタミナ不足
-            if (finalMinACount < 0 || finalMinACount > totalMaxCount) {
-                // このロジックでは finalMinACount が totalMaxCount を超える場合にスタミナ不足となる
-                
-                // スタミナ不足の場合、目標達成に必要な最小スタミナを改めて計算して表示
-                const A_needed_for_2000_alone = Math.ceil(neededItems / DROP_A);
-                const minStaminaCost_for_2000 = A_needed_for_2000_alone * STAMINA_COST;
-                const shortage = minStaminaCost_for_2000 - availableStamina;
-                
-                resultHtml = `
-                <div class="status-header" style="color: red;">❌ スタミナ不足で目標達成不可</div>
-                目標達成に必要な最小スタミナは ${minStaminaCost_for_2000} です。<br>
-                あと <strong>${shortage}</strong> スタミナが必要です。
-                `;
-                
-            } else if (totalItemsAchieved < neededItems) {
-                 // スタミナ内で頑張っても2000個に届かない場合 (スタミナが圧倒的に少ない)
-                 const A_needed_for_2000_alone = Math.ceil(neededItems / DROP_A);
-                 const minStaminaCost_for_2000 = A_needed_for_2000_alone * STAMINA_COST;
-                 const shortage = minStaminaCost_for_2000 - availableStamina;
-                 
-                 resultHtml = `
-                 <div class="status-header" style="color: red;">❌ スタミナ不足で目標達成不可</div>
-                 スタミナを全て使っても目標の2000個に届きません (最大 ${totalItemsAchieved}個)。<br>
-                 あと <strong>${shortage}</strong> スタミナが必要です。
-                 `;
-
-            } else {
-                // 達成可能
-                const minStaminaCost = totalMaxCount * STAMINA_COST; // 使えるスタミナの範囲内で回数Tを使い切る
-                const remainingStamina = availableStamina - minStaminaCost;
-
-                resultHtml = `
-                <div class="status-header" style="color: green;">✅ 目標達成可能（Aの最小回数）</div>
-
-                <span class="min-count-line">2000個達成のために、Aギャザーは最低 <strong>${finalMinACount}回</strong> 参加が必要です。</span>
-
-                <span class="details-header">
-                🔸 内訳（使えるスタミナ ${availableStamina} の範囲で最もAが少ない組み合わせ）:
-                </span>
-                <ul>
-                    <li>・Aギャザー (ドロップ10): ${finalMinACount}回</li>
-                    <li>・Bギャザー (ドロップ3): ${finalMaxBCount}回</li>
-                    <li>・合計アイテム: ${totalItemsAchieved}個</li>
-                    <li>・合計消費スタミナ: ${minStaminaCost} (残りスタミナ: ${remainingStamina})</li>
-                </ul>
-                `;
-            }
-
-            document.getElementById('result').innerHTML = resultHtml;
-        }
-
-        document.addEventListener('DOMContentLoaded', calculateOptimal);
-        document.getElementById('currentItems').addEventListener('input', calculateOptimal);
-        document.getElementById('availableStamina').addEventListener('input', calculateOptimal);
-
-    </script>
-</body>
-</html>
+  #result li {
+    font-size: 0.95em;
+  }
+}

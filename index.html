@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            max-width: 500px;
+            max-width: 500px; /* スマホで見やすい最大幅 */
             margin: 0 auto;
             padding: 20px;
             background-color: #f4f4f9;
@@ -25,11 +25,39 @@
         .input-group {
             margin-bottom: 15px;
         }
-        
-        /* ... (入力フォームのスタイルは省略) ... */
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.2rem;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
 
         button {
-            /* ... (ボタンのスタイルは省略) ... */
+            width: 100%;
+            padding: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: white;
+            background-color: #4285f4;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #357ae8;
         }
 
         /* 修正点: 結果ボックスのスタイルを安定化 */
@@ -58,20 +86,29 @@
             font-size: 1.1rem;
             font-weight: normal;
         }
+        
+        /* 黄色い内訳ヘッダーの左寄せと縦長を解消 */
+        .details-header {
+            display: block; /* ブロック要素にして左端からスタート */
+            margin-top: 10px; 
+            font-weight: bold; 
+            color: orange;
+            margin-bottom: 5px; /* 下の余白を削減 */
+        }
 
         /* 修正点: リストのインデントを徹底的にリセット */
         .result-box ul {
             list-style: none;
             padding-left: 0 !important; /* リセットを強制 */
-            margin: 10px 0 0 !important; /* マージンをリセット */
+            margin: 5px 0 0 !important; /* マージンを削減 */
             border-top: 1px dashed #ccc;
             padding-top: 10px;
         }
         
         /* リスト項目も左寄せ */
         .result-box li {
-            margin-bottom: 5px;
-            padding-left: 0 !important; /* リセットを強制 */
+            margin-bottom: 3px; /* リスト項目の縦長を削減 */
+            padding-left: 0 !important; /* 左寄せを強制 */
         }
     </style>
 </head>
@@ -114,27 +151,18 @@
             const STAMINA_COST = 21;
             const DROP_A = 10;
             const DROP_B = 3;
-            const DROP_DIFF = DROP_A - DROP_B; // 7
 
             // --- 1. 目標達成に必要な最小総回数を計算 (Bを最大限活用) ---
             
-            // 全回数Bで集めた場合の不足分をAで補う (鶴亀算の最小回数ロジック)
-            // この回数で2000個を超え、かつ回数が最小になる
-            const N = neededItems; // Nは不足分
-            
-            // Bで総回数T回集めても足りない分のアイテム数 (N - 3T) を、AとBの差(7)で割る
-            // Tはまだ使えないので、回数を最小化する線形解を求める
-            
-            // 2000個達成に必要な回数が最小になる組み合わせを総当たりで探索
             let minTotalCount = Infinity;
             let finalMinACount = -1;
             let finalMinBCount = -1;
             
             // Aの回数は 0 から、すべてAで達成できる最大回数まで試す
-            const A_max_needed = Math.ceil(N / DROP_A); 
+            const A_max_needed = Math.ceil(neededItems / DROP_A); 
 
             for (let a = 0; a <= A_max_needed; a++) {
-                const remainingItems = N - (a * DROP_A);
+                const remainingItems = neededItems - (a * DROP_A);
                 // Bで補う回数を計算 (切り上げ)
                 const b = remainingItems <= 0 ? 0 : Math.ceil(remainingItems / DROP_B);
                 
@@ -155,11 +183,13 @@
             if (minStaminaCost > availableStamina) {
                 // スタミナ不足
                 const shortage = minStaminaCost - availableStamina;
+                
+                // スタミナ不足の場合も、目標達成に必要な最小回数を表示
                 resultHtml = `
                 <div class="status-header" style="color: red;">❌ スタミナ不足で目標達成不可</div>
                 目標達成に必要な最小回数 ${minTotalCount}回分のスタミナは ${minStaminaCost} です。
                 <br>
-                あと **${shortage}** スタミナが必要です。
+                あと <strong>${shortage}</strong> スタミナが必要です。
                 `;
             } else {
                 // 達成可能
@@ -168,9 +198,9 @@
                 resultHtml = `
                 <div class="status-header" style="color: green;">✅ 目標達成可能（最小回数）</div>
 
-                <span class="min-count-line">2000個達成のために、Aギャザーは最低 **${finalMinACount}回** 参加が必要です。</span>
+                <span class="min-count-line">2000個達成のために、Aギャザーは最低 <strong>${finalMinACount}回</strong> 参加が必要です。</span>
 
-                <span style="display: block; margin-top: 10px; font-weight: bold; color: orange;">
+                <span class="details-header">
                 🔸 内訳（最小スタミナ ${minStaminaCost} で達成）:
                 </span>
                 <ul>

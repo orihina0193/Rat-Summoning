@@ -60,16 +60,37 @@
             background-color: #357ae8;
         }
 
+        /* 修正点: 結果ボックスのテキストを左寄せに強制 */
         .result-box {
             margin-top: 30px;
             padding: 15px;
             background-color: white;
             border: 1px solid #ddd;
             border-radius: 8px;
-            white-space: pre-wrap; /* 改行を反映させる */
+            white-space: pre-wrap;
             min-height: 100px;
             font-size: 1.1rem;
             line-height: 1.6;
+            text-align: left; /* 左寄せ設定 */
+        }
+        
+        /* 修正点: リストのインデントを調整 */
+        .result-box ul {
+            list-style: none; /* デフォルトの黒丸を消す */
+            padding-left: 0; /* 左側のパディングをゼロにする */
+            margin-top: 5px;
+        }
+        
+        /* リスト内のテキストを調整 */
+        .result-box li {
+            margin-bottom: 5px;
+            padding-left: 10px; 
+        }
+
+        .status-header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -116,7 +137,7 @@
             // 既に目標達成している場合
             if (neededItems <= 0) {
                 resultHtml = `
-                <span style="color: green; font-weight: bold;">🎉 目標アイテム数(${goal}個)は既に達成しています！</span>
+                <div class="status-header" style="color: green;">🎉 目標アイテム数(${goal}個)は既に達成しています！</div>
                 `;
             } else {
                 // --- 鶴亀算の制約計算 ---
@@ -134,7 +155,7 @@
                 if (DROP_A * totalMaxCount < neededItems) {
                     const shortage = neededItems - (DROP_A * totalMaxCount);
                     resultHtml = `
-                    <span style="color: red; font-weight: bold;">❌ 目標達成は不可能</span>
+                    <div class="status-header" style="color: red;">❌ 目標達成は不可能</div>
                     スタミナ内(${availableStamina})で可能な最大効率の
                     ギャザー(A)を全て行っても、あと ${shortage}個不足します。
                     `;
@@ -144,31 +165,32 @@
                     // AとBのドロップ数の差 (10 - 3 = 7) で不足分を補う
                     const dropDifference = DROP_A - DROP_B;
                     const minACount = Math.ceil(remainingAfterB / dropDifference);
-                    const minBCount = totalMaxCount - minACount;
-                    const totalItems = (minACount * DROP_A) + (minBCount * DROP_B);
                     
                     // minACountが負になる場合は、実質Aは0回でOKなので修正
                     const finalMinACount = Math.max(0, minACount);
                     const finalMinBCount = totalMaxCount - finalMinACount;
+                    const totalItems = (finalMinACount * DROP_A) + (finalMinBCount * DROP_B);
 
                     resultHtml = `
-                    <span style="color: green; font-weight: bold;">✅ 目標達成可能（最小A回数）</span>
+                    <div class="status-header" style="color: green;">✅ 目標達成可能（最小A回数）</div>
 
                     2000個達成のために、Aギャザーは最低 **${finalMinACount}回** 参加が必要です。
 
-                    <span style="font-size: 1.1rem; display: block; margin-top: 10px;">
+                    <span style="font-size: 1.1rem; display: block; margin-top: 15px;">
                     🔸 内訳（スタミナ ${availableStamina} の範囲で最も効率的）:
-                    ・Aギャザー (ドロップ10): ${finalMinACount}回
-                    ・Bギャザー (ドロップ3): ${finalMinBCount}回
-                    ・合計アイテム: ${totalItems}個
-                    ・合計消費スタミナ: ${totalMaxCount * STAMINA_COST}
                     </span>
+                    <ul>
+                        <li>・Aギャザー (ドロップ10): ${finalMinACount}回</li>
+                        <li>・Bギャザー (ドロップ3): ${finalMinBCount}回</li>
+                        <li>・合計アイテム: ${totalItems}個</li>
+                        <li>・合計消費スタミナ: ${totalMaxCount * STAMINA_COST}</li>
+                    </ul>
                     `;
                 }
                 // 3. すべてBにしても目標を達成できる場合 (Aは不要)
                 else {
                     resultHtml = `
-                    <span style="color: green; font-weight: bold;">✅ 目標達成可能（Aは不要）</span>
+                    <div class="status-header" style="color: green;">✅ 目標達成可能（Aは不要）</div>
 
                     スタミナ内で可能な最大総回数 ${totalMaxCount}回 をすべてBギャザー（ドロップ3）に充てても、目標を達成できます。
                     Aギャザーは **0回** でOKです。

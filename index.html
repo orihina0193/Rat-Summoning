@@ -1,37 +1,165 @@
-@media (max-width: 480px) {
-  h1 {
-    font-size: 1.3em;
-    margin-bottom: 15px;
-  }
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>勝敗計算ツール</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f0f0f0;
+      padding: 2em;
+      margin: 0;
+    }
 
-  input[type="number"] {
-    font-size: 1.2rem;
-    padding: 12px 10px;
-  }
+    h1 {
+      text-align: center;
+      color: #333;
+      font-size: 1.5em;
+    }
 
-  button {
-    font-size: 1em;
-    padding: 0.7em 1.2em;
-  }
+    form {
+      background: #fff;
+      padding: 1em;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
 
-  #result {
-    font-size: 1em;
-    line-height: 1.4;
-  }
+    label {
+      display: block;
+      margin: 0.5em 0;
+      font-size: 1em;
+    }
 
-  .status-header {
-    font-size: 1.2em;
-  }
+    input {
+      width: 100%;
+      padding: 0.5em;
+      margin-top: 0.2em;
+      box-sizing: border-box;
+      font-size: 1em;
+    }
 
-  .min-count-line {
-    font-size: 1em;
-  }
+    button {
+      margin-top: 1em;
+      padding: 0.7em 1.5em;
+      font-size: 1em;
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
 
-  .details-header {
-    font-size: 1em;
-  }
+    button:hover {
+      background-color: #005fa3;
+    }
 
-  #result li {
-    font-size: 0.95em;
-  }
-}
+    pre {
+      margin-top: 2em;
+      background: #fff;
+      padding: 1em;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      max-width: 600px;
+      margin: 2em auto 0;
+      box-sizing: border-box;
+      font-size: 0.95em;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 1em;
+      }
+
+      h1 {
+        font-size: 1.2em;
+      }
+
+      label, input, button, pre {
+        font-size: 1em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>勝敗計算ツール</h1>
+  <form>
+    <label for="currentItems">現在のアイテム個数 (目標 2000)</label>
+    <input type="number" id="currentItems" value="1000" placeholder="現在の個数">
+
+    <label for="availableStamina">使えるスタミナ数 (コスト 21)</label>
+    <input type="number" id="availableStamina" value="420" placeholder="スタミナ数">
+
+    <button type="button" onclick="calculateOptimal()">計算実行</button>
+  </form>
+
+  <pre id="result"></pre>
+
+  <script>
+    function calculateOptimal() {
+      const currentItems = parseInt(document.getElementById('currentItems').value);
+      const availableStamina = parseInt(document.getElementById('availableStamina').value);
+
+      if (isNaN(currentItems) || isNaN(availableStamina) || currentItems < 0 || availableStamina < 0) {
+        document.getElementById('result').textContent = '⚠️ アイテム数とスタミナ数に正しい数値を入力してください。';
+        return;
+      }
+
+      const goal = 2000;
+      const neededItems = goal - currentItems;
+      let resultText = '';
+
+      if (neededItems <= 0) {
+        resultText = `🎉 目標アイテム数(${goal}個)は既に達成しています！`;
+        document.getElementById('result').textContent = resultText;
+        return;
+      }
+
+      const STAMINA_COST = 21;
+      const DROP_A = 10;
+      const DROP_B = 3;
+      const DROP_DIFF = DROP_A - DROP_B;
+
+      const totalMaxCount = Math.floor(availableStamina / STAMINA_COST);
+      const maxItemsFromB = totalMaxCount * DROP_B;
+      const itemsShortage = neededItems - maxItemsFromB;
+
+      let finalMinACount;
+
+      if (itemsShortage <= 0) {
+        finalMinACount = 0;
+      } else {
+        finalMinACount = Math.ceil(itemsShortage / DROP_DIFF);
+      }
+
+      const finalMaxBCount = totalMaxCount - finalMinACount;
+      const totalItemsAchieved = (finalMinACount * DROP_A) + (finalMaxBCount * DROP_B);
+
+      if (finalMinACount < 0 || finalMinACount > totalMaxCount || totalItemsAchieved < neededItems) {
+        const A_needed_for_2000_alone = Math.ceil(neededItems / DROP_A);
+        const minStaminaCost_for_2000 = A_needed_for_2000_alone * STAMINA_COST;
+        const shortage = minStaminaCost_for_2000 - availableStamina;
+
+        resultText = `❌ スタミナ不足で目標達成不可\n目標達成に必要な最小スタミナは ${minStaminaCost_for_2000} です。\nあと ${shortage} スタミナが必要です。`;
+      } else {
+        const minStaminaCost = totalMaxCount * STAMINA_COST;
+        const remainingStamina = availableStamina - minStaminaCost;
+
+        resultText = `✅ 目標達成可能（Aの最小回数）\n\n2000個達成のために、Aギャザーは最低 ${finalMinACount}回 参加が必要です。\n\n🔸 内訳（使えるスタミナ ${availableStamina} の範囲で最もAが少ない組み合わせ）:\n・Aギャザー (ドロップ10): ${finalMinACount}回\n・Bギャザー (ドロップ3): ${finalMaxBCount}回\n・合計アイテム: ${totalItemsAchieved}個\n・合計消費スタミナ: ${minStaminaCost} (残りスタミナ: ${remainingStamina})`;
+      }
+
+      document.getElementById('result').textContent = resultText;
+    }
+
+    window.onload = calculateOptimal;
+    document.getElementById('currentItems').addEventListener('input', calculateOptimal);
+    document.getElementById('availableStamina').addEventListener('input', calculateOptimal);
+  </script>
+</body>
+</html>

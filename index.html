@@ -151,7 +151,7 @@
         const minStaminaCost = totalMaxCount * STAMINA_COST;
         const remainingStamina = availableStamina - minStaminaCost;
 
-        resultText = `✅ 目標達成可能（Aの最小回数）\n\n2000個達成のために、Aギャザーは最低 ${finalMinACount}回 参加が必要です。\n\n🔸 内訳（使えるスタミナ ${availableStamina} の範囲で最もAが少ない組み合わせ）:\n・Aギャザー (ドロップ10): ${finalMinACount}回\n・Bギャザー (ドロップ3): ${finalMaxBCount}回\n・合計アイテム: ${totalItemsAchieved}個\n・合計消費スタミナ: ${minStaminaCost} (残りスタミナ: ${remainingStamina})`;
+        resultText = `✅ 目標達成可能（レアの最小回数）\n\n2000個達成のために、レアギャザーは最低 ${finalMinACount}回 参加が必要です。\n\n🔸 内訳（使えるスタミナ ${availableStamina} の範囲で最もレアが少ない組み合わせ）:\n・レアギャザー (ドロップ10): ${finalMinACount}回\n・ノーマルギャザー (ドロップ3): ${finalMaxBCount}回\n・合計アイテム: ${totalItemsAchieved}個\n・合計消費スタミナ: ${minStaminaCost} (残りスタミナ: ${remainingStamina})`;
       }
 
       document.getElementById('result').textContent = resultText;

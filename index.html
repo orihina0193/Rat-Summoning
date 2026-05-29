@@ -205,41 +205,7 @@
           <!-- ステータス表示コンテナ -->
           <div id="statusContainer" class="mb-6"></div>
 
-          <!-- 進捗バー可視化 -->
-          <div class="mb-6">
-            <div class="flex justify-between items-end mb-1.5 text-xs">
-              <span class="text-slate-500 font-medium font-sans">アイテム獲得進捗率</span>
-              <span id="progressBarLabel" class="font-mono text-slate-700 font-bold">0 / 2000 個 (0%)</span>
-            </div>
-            
-            <!-- 進捗バートラック -->
-            <div class="w-full h-5 bg-slate-100 rounded-lg overflow-hidden flex border border-slate-200/50">
-              <div id="progressCurrent" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
-              <div id="progressRare" class="bg-indigo-500 h-full transition-all duration-300" style="width: 0%"></div>
-              <div id="progressNormal" class="bg-indigo-300 h-full transition-all duration-300" style="width: 0%"></div>
-              <div id="progressUnreached" class="bg-rose-100/40 h-full flex-grow border-l border-dashed border-rose-300 hidden"></div>
-            </div>
 
-            <!--凡例-->
-            <div class="flex flex-wrap gap-x-4 gap-y-1.5 mt-2.5 text-[11px] text-slate-500 font-medium">
-              <div class="flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-xs bg-emerald-500 block"></span>
-                <span>所持中 (<span id="legendCurrent">0</span>個)</span>
-              </div>
-              <div id="legendRareContainer" class="flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-xs bg-indigo-500 block"></span>
-                <span>レア獲得予定 (<span id="legendRare">0</span>個)</span>
-              </div>
-              <div id="legendNormalContainer" class="flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-xs bg-indigo-300 block"></span>
-                <span>通常獲得予定 (<span id="legendNormal">0</span>個)</span>
-              </div>
-              <div id="legendUnreachedContainer" class="flex items-center gap-1.5 text-rose-500 font-bold hidden">
-                <span class="w-2.5 h-2.5 rounded-xs bg-rose-100 border border-rose-300 border-dashed block"></span>
-                <span>未達成枠 (-<span id="legendUnreached">0</span>個)</span>
-              </div>
-            </div>
-          </div>
 
           <!-- 詳細な内訳数値 -->
           <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/60">
@@ -272,6 +238,19 @@
                 <span class="font-mono font-bold text-slate-500" id="resultRemainingStamina">0</span>
               </div>
             </div>
+            <!-- コピーボタン -->
+            <button
+              type="button"
+              onclick="copyToClipboard()"
+              id="copyBtn"
+              class="w-full mt-4 py-2.5 px-3 bg-white hover:bg-slate-100 active:bg-slate-200 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <!-- Copy SVG -->
+              <svg id="copyIcon" class="h-3.5 w-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span id="copyBtnText">内訳テキストをコピー</span>
+            </button>
           </div>
         </div>
       </section>
@@ -285,6 +264,79 @@
 
   <!-- ロジックJavaScript -->
   <script>
+    // コピペ機能（絵文字なし）
+    function copyToClipboard() {
+      const goal = document.getElementById('goal').value || 0;
+      const currentItems = document.getElementById('currentItems').value || 0;
+      const availableStamina = document.getElementById('availableStamina').value || 0;
+      const staminaCost = document.getElementById('staminaCost').value || 21;
+      const dropA = document.getElementById('dropA').value || 10;
+      const dropB = document.getElementById('dropB').value || 3;
+
+      const rareRuns = document.getElementById('resultRareRuns').innerText || '0 回';
+      const normalRuns = document.getElementById('resultNormalRuns').innerText || '0 回';
+      const gainedItems = document.getElementById('resultGainedItems').innerText || '+0 個';
+      const finalItems = document.getElementById('resultFinalItems').innerText || '0 / 0 個';
+      const staminaRatio = document.getElementById('resultStaminaRatio').innerText || '0 / 0';
+      const remainingStamina = document.getElementById('resultRemainingStamina').innerText || '0';
+
+      const statusContainerText = document.getElementById('statusContainer').innerText || '';
+      let statusText = '目標達成可能です（最低レア回数での最適化）。';
+      if (statusContainerText.includes('すでに達成')) {
+        statusText = '目標アイテム数をすでに達成しています。';
+      } else if (statusContainerText.includes('スタミナ不足')) {
+        statusText = 'スタミナ不足で目標達成不可です。';
+      }
+
+      const textLines = [
+        '【ネズミ召喚イベント スタミナ最適化内訳】',
+        `・目標アイテム数: ${goal} 個`,
+        `・現在のアイテム数: ${currentItems} 個`,
+        `・使えるスタミナ: ${availableStamina}`,
+        `・スタミナ消費: ${staminaCost} / 回`,
+        '',
+        `・レア周回数: ${rareRuns}`,
+        `・通常周回数: ${normalRuns}`,
+        `・獲得予定アイテム数 合計: ${gainedItems}`,
+        `・達成時最終アイテム数: ${finalItems}`,
+        `・消費スタミナ合計: ${staminaRatio}`,
+        `・残り余りスタミナ: ${remainingStamina}`,
+        `・状況: ${statusText}`
+      ];
+
+      const finalCopyText = textLines.join('\n');
+
+      const tempTextArea = document.createElement('textarea');
+      tempTextArea.value = finalCopyText;
+      tempTextArea.style.position = 'fixed';
+      document.body.appendChild(tempTextArea);
+      tempTextArea.focus();
+      tempTextArea.select();
+
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          const btnText = document.getElementById('copyBtnText');
+          const icon = document.getElementById('copyIcon');
+          
+          btnText.innerText = 'コピーしました！';
+          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />';
+          icon.classList.remove('text-slate-500');
+          icon.classList.add('text-emerald-500');
+
+          setTimeout(() => {
+            btnText.innerText = '内訳テキストをコピー';
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />';
+            icon.classList.remove('text-emerald-500');
+            icon.classList.add('text-slate-500');
+          }, 2000);
+        }
+      } catch (err) {
+        console.error('Copy fallback failed', err);
+      }
+      document.body.removeChild(tempTextArea);
+    }
+
     // アコーディオンの展開切り替え
     function toggleAdvanced() {
       const panel = document.getElementById('advancedPanel');
@@ -330,12 +382,6 @@
       const neededItems = goal - currentItems;
       const statusContainer = document.getElementById('statusContainer');
 
-      // 進捗バー用のエレメント
-      const progressCurrent = document.getElementById('progressCurrent');
-      const progressRare = document.getElementById('progressRare');
-      const progressNormal = document.getElementById('progressNormal');
-      const progressUnreached = document.getElementById('progressUnreached');
-
       // 1. すでに達成済み
       if (neededItems <= 0) {
         statusContainer.innerHTML = `
@@ -356,18 +402,6 @@
           </div>
         `;
 
-        progressCurrent.style.width = '100%';
-        progressRare.style.width = '0%';
-        progressNormal.style.width = '0%';
-        progressUnreached.classList.add('hidden');
-
-        document.getElementById('legendCurrent').innerText = currentItems;
-        document.getElementById('legendRareContainer').classList.add('hidden');
-        document.getElementById('legendNormalContainer').classList.add('hidden');
-        document.getElementById('legendUnreachedContainer').classList.add('hidden');
-
-        document.getElementById('progressBarLabel').innerText = `${currentItems} / ${goal} 個 (100%)`;
-        
         document.getElementById('resultRareRuns').innerText = `0 回`;
         document.getElementById('resultNormalRuns').innerText = `0 回`;
         document.getElementById('resultGainedItems').innerText = `+0 個`;
@@ -398,14 +432,6 @@
       const totalItemsAchieved = (finalMinACount * dropA) + (finalMaxBCount * dropB);
 
       const isFeasible = finalMinACount >= 0 && finalMinACount <= totalMaxCount && totalItemsAchieved >= neededItems;
-
-      // 進捗率用の定義
-      const goalSafe = Math.max(1, goal);
-      const currentPct = Math.min(100, (currentItems / goalSafe) * 100);
-
-      document.getElementById('legendCurrent').innerText = currentItems;
-      document.getElementById('legendRareContainer').classList.remove('hidden');
-      document.getElementById('legendNormalContainer').classList.remove('hidden');
 
       if (!isFeasible) {
         // 2. スタミナ不足で達成不可
@@ -445,24 +471,8 @@
           </div>
         `;
 
-        // 進捗バーの割合 (全てをレアに全振りしても足りない部分を表示)
         const possibleRareGains = totalMaxCount * dropA;
-        const rarePct = Math.min(100 - currentPct, (possibleRareGains / goalSafe) * 100);
-
-        progressCurrent.style.width = `${currentPct}%`;
-        progressRare.style.width = `${rarePct}%`;
-        progressNormal.style.width = '0%';
-        
-        progressUnreached.classList.remove('hidden');
-        progressUnreached.title = `目標まであと ${goal - (currentItems + possibleRareGains)}個 不足`;
-
-        document.getElementById('legendRare').innerText = possibleRareGains;
-        document.getElementById('legendNormalContainer').classList.add('hidden');
-        document.getElementById('legendUnreachedContainer').classList.remove('hidden');
-        document.getElementById('legendUnreached').innerText = goal - (currentItems + possibleRareGains);
-
         const totalExpected = currentItems + possibleRareGains;
-        document.getElementById('progressBarLabel').innerText = `${totalExpected} / ${goal} 個 (${Math.round((totalExpected / goalSafe) * 100)}%)`;
 
         // 数値表の更新 (全力レア全振りとして可視化)
         document.getElementById('resultRareRuns').innerText = `${totalMaxCount} 回`;
@@ -509,22 +519,7 @@
 
         const rareGains = finalMinACount * dropA;
         const normalGains = finalMaxBCount * dropB;
-
-        const rarePct = Math.min(100 - currentPct, (rareGains / goalSafe) * 100);
-        const normalPct = Math.min(100 - currentPct - rarePct, (normalGains / goalSafe) * 100);
-
-        progressCurrent.style.width = `${currentPct}%`;
-        progressRare.style.width = `${rarePct}%`;
-        progressNormal.style.width = `${normalPct}%`;
-        
-        progressUnreached.classList.add('hidden');
-
-        document.getElementById('legendRare').innerText = rareGains;
-        document.getElementById('legendNormal').innerText = normalGains;
-        document.getElementById('legendUnreachedContainer').classList.add('hidden');
-
         const finalExpected = currentItems + rareGains + normalGains;
-        document.getElementById('progressBarLabel').innerText = `${finalExpected} / ${goal} 個 (${Math.round((finalExpected / goalSafe) * 100)}%)`;
 
         // 数値表更新
         document.getElementById('resultRareRuns').innerText = `${finalMinACount} 回`;
